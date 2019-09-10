@@ -1,0 +1,10 @@
+double tempX, tempY;
+	tempX = x1 - x;    //x1, y1 are mouse possitions
+	tempY = y1 - y;    //x2,y2 is the initial place of the object
+
+	long bulletSpeedTemp = sqrt((pow(tempX, 2) + pow(tempY, 2)));  //total bullet speed with 2 temp components
+	int devider = bulletSpeedTemp / bulletSpeed;    //finding the devider that will make the numbers smaller depending on wnated bullet speed
+	tempX /= devider;  //deviding both components
+	tempY /= devider;
+	velocityX = tempX;
+	velocityY = tempY;
