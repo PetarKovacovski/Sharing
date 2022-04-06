@@ -1,0 +1,173 @@
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <set>
+#include <unordered_map>
+
+using namespace std;
+
+
+
+
+void enterRaw(vector<vector<int>>& v) {  // enter numbers without spaces
+	string s;
+	cin >> s;
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j = 0; j < 9; j++) {
+			int n = i * 9 + j;
+			v[i][j] = s[n] - '0';
+		}
+	}
+}
+void enter(vector<vector<int>> &v) {  //  enter with spaces
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j = 0; j < 9; j++) {
+			cin >> v[i][j];
+		}
+	}
+}
+void print(vector<vector<int>> v) { // pritnt like sudoku
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j = 0; j < 9; j++) {
+			if (v[i][j] == 0)
+				cout << " - ";
+			else
+				cout << " " << v[i][j] << " ";
+			if (j == 2 || j == 5)
+				cout << "|";
+		}
+		if (i == 2 || i == 5)
+			cout << "\n---------|---------|---------\n";
+		else
+			cout << endl;
+	}
+}
+void printRaw(vector<vector<int>> v) {  
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j = 0; j < 9; j++) {
+			cout << v[i][j];
+		}
+	}
+}
+
+
+bool isUnique(vector<vector<int>> v) {
+	static unordered_map<string, bool> m;
+	string s = "";
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 9; j++) {
+			s.push_back(v[i][j] + '0');
+		}
+	}
+	if (m.count(s)) return false;
+	m[s] = true;
+	return true;
+}
+set<int> check(vector<vector<int>>& sudoku, int row, int column) {
+	set<int> s{ 1,2,3,4,5,6,7,8,9 };
+	for (int i = 0; i < 9; i++) {  
+		s.erase(sudoku[row][i]);
+		s.erase(sudoku[i][column]);
+	}
+	int tempRow = row;
+	int tempCol = column;
+	if (tempRow != 0)
+		tempRow /= 3;
+	if (tempCol != 0)
+		tempCol /= 3;
+	tempRow++;
+	tempCol++;
+	tempRow *= 3;
+	tempCol *= 3;
+	tempRow -= 3;
+	tempCol -= 3;
+
+
+	for (int i = tempRow; i < tempRow + 3; i++) {
+		for (int j = tempCol; j < tempCol + 3; j++) {
+			s.erase(sudoku[i][j]);
+		}
+	}
+	return s;
+
+}
+
+void solve(vector<vector<int>> currSudoku) {
+	static int solutionN = 1;
+	int emptyNum = INT_MAX;
+	int prevEmpty = emptyNum;
+	while (emptyNum > 0) {
+		emptyNum = 0;
+		pair<int, int> minPossibleCoord;
+		set<int> possible;
+		int minSize = INT_MAX;
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (currSudoku[i][j] == 0) {
+					set<int> currPossible = check(currSudoku, i, j);
+					if (currPossible.size() == 1) {
+						currSudoku[i][j] = *currPossible.begin();
+					}
+					else if (currPossible.size() == 0) return;
+					else {
+						emptyNum++;
+						if (currPossible.size() < minSize) {
+							minPossibleCoord = { i,j };
+							possible = currPossible;
+						}
+					}
+				}
+			}
+		}
+		if (emptyNum == 0) break;
+		if (emptyNum == prevEmpty) {
+			int x = minPossibleCoord.first;
+			int y = minPossibleCoord.second;
+			for (int num : possible) {
+				currSudoku[x][y] = num;
+				solve(currSudoku);
+				currSudoku[x][y] = 0;
+			}
+			return;
+		}
+		prevEmpty = emptyNum;
+	}
+	if (isUnique(currSudoku)) {
+		cout << "\n\n SOLUTION #" << solutionN << "\n\n";
+		print(currSudoku);
+		solutionN++;
+	}
+}
+
+
+
+int main()
+{
+
+	vector<vector<int>> sudoku(9, vector<int>(9));
+	cout << "SUDOKU SOLVER\n\n";
+	cout << "1. Enter raw" << endl;
+	cout << "2. Enter with spaces" << endl;
+	int choise;
+	cin >> choise;
+	if (choise == 1)
+		enterRaw(sudoku);
+	else if (choise == 2) {
+		enter(sudoku);
+	}
+	cout << "\n\n Unsolved:\n";
+
+	print(sudoku);
+	cout << "\n\n\n\nSOLUTION:" << endl;
+	solve(sudoku);
+
+	cout << endl;
+}
+
+
+//https://www.kaggle.com/bryanpark/sudoku milion test cases
